@@ -26,17 +26,32 @@ domain の 設定
 vi /etc/nginx/sites-available/default
 ```
 
-以下の xxx の箇所にドメイン名を記載
+以下の 例のように 80 番のみで一旦作成し、 nginx を再起動する
 
 ```
-server_name xxx;
+server {
+    listen 80;
+	  server_name cms.symbol-community.com;
+	  location / {
+		  proxy_pass	http://localhost:1337/;
+	  }
+}
+
+server {
+    listen 80;
+		server_name symbol-community.com;
+		root /var/www/html;
+		location / {
+			try_files $uri $uri/ =404;
+		}
+}
 ```
 
 nginx の起動
 （ Error が出た時は Apache2 等で先に PORT を利用していないか確認）
 
 ```sh
-systemctl start nginx apt-get install nginx
+systemctl start nginx
 systemctl enable nginx
 ```
 
@@ -94,34 +109,52 @@ vi /etc/nginx/sites-available/default
 
 ```
 server {
-  root /var/www/html;
-  index index.html index.htm index.nginx-debian.html;
-  server_name 利用するドメイン名;
-  location /sample/ {
-    proxy_pass http://localhost:8080/;
-  }
-  location /test/ {
-    proxy_pass http://localhost:5000/;
-  }
-  listen [::]:443 ssl ipv6only=on;
-  listen 443 ssl;
-  ssl_certificate ここは CertBot により自動挿入された証明書のPATH;
-  ssl_certificate_key ここは CertBot により自動挿入された証明書のPATH;
-  include ここは CertBot により自動挿入された証明書のPATH;
-  ssl_dhparam ここは CertBot により自動挿入された証明書のPATH;
+	  server_name cms.symbol-community.com;
+	  location / {
+		  proxy_pass	http://localhost:1337/;
+	  }
+
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/symbol-community.com/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/symbol-community.com/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
 }
 
 server {
-  if ($host = 利用するドメイン名) {
-    return 301 https://$host$request_uri;
-  }
+		server_name symbol-community.com;
+		root /var/www/html;
+		location / {
+			try_files $uri $uri/ =404;
+		}
 
-  listen 80 default_server;
-  listen [::]:80 default_server;
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/symbol-community.com/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/symbol-community.com/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
 
-  server_name  利用するドメイン名;
-  return 404;
+}
 
+server {
+    if ($host = symbol-community.com) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+		listen 80;
+		server_name symbol-community.com;
+			return 404; # managed by Certbot
+
+}
+server {
+    if ($host = cms.symbol-community.com) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+		listen 80;
+		server_name cms.symbol-community.com;
+			return 404; # managed by Certbot
 }
 ```
 
