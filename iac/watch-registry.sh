@@ -40,8 +40,7 @@ handle_error() {
 trap 'handle_error' ERR
 
 # 前回のハッシュと比較
-if [ "$remote_image_hash" != "$last_image_hash" ]; then
-    # 通知の処理を追加（例：メール送信、Slack通知など）
+if [ "$remote_image_hash" != "$last_image_hash" ] && [ -n "$remote_image_hash" ]; then
 
     # コンテナ差し替え
     echo "更新を検知しました。コンテナを差し替えます。"
