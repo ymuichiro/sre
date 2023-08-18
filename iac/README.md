@@ -11,7 +11,7 @@ chmod 700 /path/to/your/script.sh
 設定ファイルを開く
 
 ```shell
-crontab -e
+sudo crontab -e
 ```
 
 設定を追記する

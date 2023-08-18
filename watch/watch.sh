@@ -1,3 +1,5 @@
+#!/bin/bash
+
 slack_webhook_url="https://hooks.slack.com/services/***************"
 node_url="https://***************"
 web_url="https://***************"
